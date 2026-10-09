@@ -13,6 +13,52 @@ function isFestivoUrl(raw) {
   }
 }
 
+function isTelegramAuthUrl(raw) {
+  try {
+    const url = new URL(raw);
+    return url.hostname === 'oauth.telegram.org' ||
+      url.hostname === 'telegram.org' ||
+      url.hostname.endsWith('.telegram.org') ||
+      url.hostname === 't.me';
+  } catch {
+    return false;
+  }
+}
+
+function configureWindowOpen(win, title) {
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    // Keep Telegram authentication in an Electron popup so the login
+    // widget can return its result to the original FESTIVO window.
+    if (isTelegramAuthUrl(url)) {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          width: 520,
+          height: 720,
+          minWidth: 420,
+          minHeight: 500,
+          autoHideMenuBar: true,
+          title: 'FESTIVO — вход через Telegram',
+          parent: win,
+          modal: false,
+          webPreferences: {
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true
+          }
+        }
+      };
+    }
+
+    if (isFestivoUrl(url)) {
+      createAppWindow(url, title);
+    } else {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+}
+
 function createAppWindow(url, title = 'FESTIVO — экран для гостей') {
   if (!isFestivoUrl(url)) {
     shell.openExternal(url);
@@ -38,16 +84,9 @@ function createAppWindow(url, title = 'FESTIVO — экран для госте�
   tvWindows.add(win);
   win.once('ready-to-show', () => win.show());
   win.on('closed', () => tvWindows.delete(win));
-  win.webContents.setWindowOpenHandler(({ url: target }) => {
-    if (isFestivoUrl(target)) {
-      createAppWindow(target);
-    } else {
-      shell.openExternal(target);
-    }
-    return { action: 'deny' };
-  });
+  configureWindowOpen(win, title);
   win.webContents.on('will-navigate', (event, target) => {
-    if (!isFestivoUrl(target)) {
+    if (!isFestivoUrl(target) && !isTelegramAuthUrl(target)) {
       event.preventDefault();
       shell.openExternal(target);
     }
@@ -72,17 +111,9 @@ function createHostWindow() {
     }
   });
 
-  hostWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (isFestivoUrl(url)) {
-      createAppWindow(url);
-    } else {
-      shell.openExternal(url);
-    }
-    return { action: 'deny' };
-  });
-
+  configureWindowOpen(hostWindow, 'FESTIVO — экран для гостей');
   hostWindow.webContents.on('will-navigate', (event, url) => {
-    if (!isFestivoUrl(url)) {
+    if (!isFestivoUrl(url) && !isTelegramAuthUrl(url)) {
       event.preventDefault();
       shell.openExternal(url);
     }
