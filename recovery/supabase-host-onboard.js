@@ -7,10 +7,10 @@ const token=()=>crypto.randomUUID()+crypto.randomUUID();
 async function attachDisplay(db:any,events:any[]){
  if(!events.length)return events;
  const ids=events.map((x:any)=>x.id);
- const q=await db.from("settings").select("event_id,display_title,display_theme").in("event_id",ids);
+ const q=await db.from("settings").select("event_id,display_title,display_heading,display_theme").in("event_id",ids);
  if(q.error)throw q.error;
  const map=new Map((q.data||[]).map((x:any)=>[x.event_id,x]));
- return events.map((e:any)=>{const s:any=map.get(e.id)||{};return {...e,display_title:s.display_title||"FESTIVO",display_theme:s.display_theme||"birthday"};});
+ return events.map((e:any)=>{const s:any=map.get(e.id)||{};return {...e,display_title:s.display_title||"FESTIVO",display_heading:s.display_heading||"ПОЖЕЛАНИЯ",display_theme:s.display_theme||"birthday"};});
 }
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
@@ -35,9 +35,10 @@ Deno.serve(async req=>{
    if(owned.error)return json({error:owned.error.message},500);
    if(!owned.data)return json({error:"Нет прав на изменение этого экрана"},403);
    const title=String(b.display_title||"FESTIVO").trim().slice(0,80)||"FESTIVO";
+   const heading=String(b.display_heading||"ПОЖЕЛАНИЯ").trim().slice(0,80)||"ПОЖЕЛАНИЯ";
    const allowed=["birthday","wedding","corporate","newyear","anniversary"];
    const theme=allowed.includes(String(b.display_theme))?String(b.display_theme):"birthday";
-   const saved=await db.from("settings").upsert({event_id:eventId,display_title:title,display_theme:theme},{onConflict:"event_id"});
+   const saved=await db.from("settings").upsert({event_id:eventId,display_title:title,display_heading:heading,display_theme:theme},{onConflict:"event_id"});
    if(saved.error)return json({error:saved.error.message},500);
    const all=await db.from("host_events").select("event_id,events(id,name,code,status,admin_token,created_at)").eq("host_id",h.id).order("created_at",{ascending:true});
    if(all.error)return json({error:all.error.message},500);
