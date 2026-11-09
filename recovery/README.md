@@ -1,28 +1,33 @@
-# FESTIVO recovery and screen personalization
+# FESTIVO — восстановление и обновление экрана мероприятия
 
-This branch preserves the original Worker before making changes and contains the updated build.
+Ветка содержит резервную копию исходного Worker и версию с обновлённым экраном.
 
-## Files
-- `recovery/worker-original-2026-11-09.js` — exact Worker source downloaded from Cloudflare before the screen redesign.
-- `recovery/worker-personalized-screen-2026-11-09.js` — updated Worker source deployed to Cloudflare Worker `festivo`.
-- `recovery/supabase-host-onboard.js` — updated `host-onboard` Edge Function (version 5).
-- `recovery/supabase-wishes-feed.js` — updated `wishes-feed` Edge Function (version 4).
+## Файлы
+- `worker-original-2026-11-09.js` — исходный Worker, полученный напрямую из Cloudflare до изменений.
+- `worker-personalized-screen-2026-11-09.js` — обновлённый Worker, загруженный в Cloudflare `festivo`.
+- `supabase-host-onboard.js` — Edge Function `host-onboard`, версия 5.
+- `supabase-wishes-feed.js` — Edge Function `wishes-feed`, версия 4.
+- `add_event_screen_personalization.sql` — SQL-миграция для настроек оформления каждого мероприятия.
 
-## Screen changes
-- Message/photo cards use a 2-column × 3-row grid (one independent cell per card); no free-floating positions or crossing paths.
-- The screen keeps the six latest visible cards. New approved items replace the oldest visible cards, so the screen stays readable during a busy event.
-- The title at the top of the projector screen is editable per event.
-- Five event covers are available per event: Birthday, Wedding, Corporate, New Year, and Anniversary.
+## Что изменено
+1. Сообщения и фотографии выводятся в сетке 2 × 3: отдельная ячейка для каждой из шести видимых карточек. Карточки больше не плавают по произвольным координатам и не должны перекрывать друг друга.
+2. При поступлении новых одобренных сообщений самые старые видимые карточки последовательно заменяются новыми.
+3. Заголовок в верхней части экрана можно менять отдельно для каждого мероприятия: например, «Александр и Мария», «Юбилей Анны», «Команда компании».
+4. Доступно пять оформлений:
+   - День рождения — яркое праздничное оформление.
+   - Свадьба — светлая палитра с золотыми и нежными оттенками.
+   - Корпоратив — сдержанный тёмно-синий стиль.
+   - Новый год — зелёно-золотая палитра со снежинками.
+   - Юбилей / годовщина — бордово-золотое оформление.
+5. На странице модерации старый видимый логотип заменён на FESTIVO.
 
-## How the host changes the screen
-Open the host dashboard, find the event card, enter the title that should appear at the top, select the cover, and click **Save screen design**. Settings are stored per event in the existing `public.settings` table.
+## Как изменить экран
+Откройте кабинет ведущего. В карточке нужного мероприятия появится раздел «Оформление экрана». Введите заголовок, выберите обложку и нажмите «Сохранить оформление». Настройки хранятся отдельно для каждого мероприятия. Открытый экран обновляет данные автоматически.
 
-## Routing
-The root URL remains the host login. A root URL with `?event=...` continues to open the guest page directly. Existing Supabase tables, guest page, moderation page, projector page, QR join flow and MP3 sound remain in the Worker bundle.
+## Сохранённые маршруты и функции
+- Обычное открытие корневого адреса ведёт на вход ведущего.
+- Корневой адрес с параметром `?event=...` открывает гостевую страницу.
+- Сохранены гостевая регистрация, QR-подключение, модерация, экран, Supabase REST/Edge Functions и MP3 уведомление.
 
-## Supabase settings added
-- `settings.display_title` — text, default `FESTIVO`.
-- `settings.display_theme` — text, default `birthday`, constrained to the five supported theme identifiers.
-
-## Recovery note
-The Supabase project was paused (INACTIVE) and was restored. Its status subsequently returned to ACTIVE_HEALTHY. The old Cloudflare export-only helper Worker was removed after recovery; the production `festivo` Worker is the updated application.
+## Восстановление
+Supabase-проект был приостановлен со статусом INACTIVE. Он восстановлен; последняя проверка вернула ACTIVE_HEALTHY. Временный Worker, созданный только для экспорта исходника, после восстановления удалён. Основной Worker `festivo` обновлён.
