@@ -16,3 +16,5 @@ alter table public.settings
     'newyear',
     'anniversary'
   ]));
+
+alter table public.settings add column if not exists display_heading text not null default 'ПОЖЕЛАНИЯ';
