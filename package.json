@@ -7,10 +7,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis --publish never",
-    "release": "electron-builder --win nsis --publish always",
-    "pre-dist": "node -e \"require('png-to-ico')('build/icon.png').then(buf=>require('fs').writeFileSync('build/icon.ico',buf))\"",
-    "pre-release": "node -e \"require('png-to-ico')('build/icon.png').then(buf=>require('fs').writeFileSync('build/icon.ico',buf))\""
+    "dist": "node -e \"require('png-to-ico')('build/icon.png').then(buf=>require('fs').writeFileSync('build/icon.ico',buf)).catch(err=>{console.error(err);process.exit(1)})\" && electron-builder --win nsis --publish never",
+    "release": "node -e \"require('png-to-ico')('build/icon.png').then(buf=>require('fs').writeFileSync('build/icon.ico',buf)).catch(err=>{console.error(err);process.exit(1)})\" && electron-builder --win nsis --publish always"
   },
   "devDependencies": {
     "electron": "^35.0.0",
