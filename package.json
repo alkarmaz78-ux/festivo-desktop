@@ -8,11 +8,14 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win nsis --publish never",
-    "release": "electron-builder --win nsis --publish always"
+    "release": "electron-builder --win nsis --publish always",
+    "pre-dist": "node -e \"require('png-to-ico')('build/icon.png').then(buf=>require('fs').writeFileSync('build/icon.ico',buf))\"",
+    "pre-release": "node -e \"require('png-to-ico')('build/icon.png').then(buf=>require('fs').writeFileSync('build/icon.ico',buf))\""
   },
   "devDependencies": {
     "electron": "^35.0.0",
-    "electron-builder": "^26.0.0"
+    "electron-builder": "^26.0.0",
+    "png-to-ico": "^2.1.8"
   },
   "build": {
     "appId": "com.festivo.desktop",
