@@ -1,13 +1,14 @@
 {
   "name": "festivo-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "FESTIVO desktop app with separate host and guest display windows",
   "main": "main.js",
   "author": "FESTIVO",
   "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win nsis --publish never"
+    "dist": "electron-builder --win nsis --publish never",
+    "release": "electron-builder --win nsis --publish always"
   },
   "devDependencies": {
     "electron": "^35.0.0",
@@ -34,6 +35,17 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "alkarmaz78-ux",
+        "repo": "festivo-desktop",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2"
   }
 }
