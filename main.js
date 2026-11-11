@@ -65,15 +65,29 @@ function createAppWindow(url, title = 'FESTIVO — экран для госте�
     return null;
   }
 
+  const target = new URL(url);
+  const isMusicLoto = target.hostname === 'music-loto.s-afamilyevent.workers.dev';
+  const isProjector = isMusicLoto && target.searchParams.get('projector') === '1';
+
+  // Music Loto projector is always a real Electron BrowserWindow.
+  // It must never be delegated to the user's default browser.
+  const windowTitle = isProjector
+    ? 'FESTIVO — Музыкальное лото · Проектор'
+    : isMusicLoto
+      ? 'FESTIVO — Музыкальное лото'
+      : title;
+
   const win = new BrowserWindow({
-    width: 1600,
-    height: 900,
-    minWidth: 800,
-    minHeight: 450,
+    width: isProjector ? 1600 : 1440,
+    height: isProjector ? 900 : 900,
+    minWidth: isProjector ? 960 : 800,
+    minHeight: isProjector ? 540 : 450,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#0b0b24',
-    title,
+    title: windowTitle,
+    resizable: true,
+    fullscreen: false,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
