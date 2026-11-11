@@ -27,7 +27,13 @@ jobs:
       - name: Build Windows installer
         run: npm run dist
 
-      - name: Publish auto-update release\n        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')\n        run: npm run release\n        env:\n          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n\n      - name: Upload installer
+      - name: Publish auto-update release
+        if: github.ref == 'refs/heads/main'
+        run: npm run release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: FESTIVO-Windows-Installer
