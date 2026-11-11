@@ -1,4 +1,5 @@
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 
 const APP_URL = 'https://festivo.s-afamilyevent.workers.dev/';
 const ALLOWED_HOSTS = new Set(['festivo.s-afamilyevent.workers.dev', 'music-loto.s-afamilyevent.workers.dev']);
@@ -138,9 +139,64 @@ function createHostWindow() {
   hostWindow.loadURL(APP_URL);
 }
 
+
+// Automatic in-app updates. The first updater-enabled build is installed once;
+// all later versions download and install from inside FESTIVO.
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
+autoUpdater.allowDowngrade = false;
+
+function showUpdateDialog(options) {
+  return hostWindow && !hostWindow.isDestroyed()
+    ? dialog.showMessageBox(hostWindow, options)
+    : dialog.showMessageBox(options);
+}
+
+autoUpdater.on('update-available', async (info) => {
+  const result = await showUpdateDialog({
+    type: 'info',
+    title: 'Доступно обновление FESTIVO',
+    message: `Доступна новая версия FESTIVO ${info.version}.`,
+    detail: 'Скачать обновление сейчас? Программа продолжит работать во время загрузки.',
+    buttons: ['Скачать обновление', 'Позже'],
+    defaultId: 0,
+    cancelId: 1
+  });
+  if (result.response === 0) autoUpdater.downloadUpdate().catch((error) => console.error('FESTIVO update download:', error));
+});
+
+autoUpdater.on('download-progress', (progress) => {
+  if (hostWindow && !hostWindow.isDestroyed()) {
+    hostWindow.setProgressBar(Math.max(0, Math.min(1, progress.percent / 100)));
+  }
+});
+
+autoUpdater.on('update-downloaded', async (info) => {
+  if (hostWindow && !hostWindow.isDestroyed()) hostWindow.setProgressBar(-1);
+  const result = await showUpdateDialog({
+    type: 'info',
+    title: 'Обновление FESTIVO готово',
+    message: `Версия ${info.version} уже загружена.`,
+    detail: 'Перезапустить FESTIVO и установить обновление сейчас?',
+    buttons: ['Перезапустить и обновить', 'Позже'],
+    defaultId: 0,
+    cancelId: 1
+  });
+  if (result.response === 0) autoUpdater.quitAndInstall(false, true);
+});
+
+autoUpdater.on('error', (error) => console.error('FESTIVO auto-update:', error));
+
+function checkForAppUpdates() {
+  if (app.isPackaged && process.platform === 'win32') {
+    autoUpdater.checkForUpdates().catch((error) => console.error('FESTIVO update check:', error));
+  }
+}
+
 app.whenReady().then(() => {
   app.setAppUserModelId('com.festivo.desktop');
   createHostWindow();
+  setTimeout(checkForAppUpdates, 8000);
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createHostWindow();
   });
