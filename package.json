@@ -1,6 +1,6 @@
 {
   "name": "festivo-desktop",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "FESTIVO desktop app with separate host and guest display windows",
   "main": "main.js",
   "author": "FESTIVO",
@@ -28,6 +28,7 @@
       "target": [
         "nsis"
       ],
+      "icon": "build/icon.ico",
       "artifactName": "FESTIVO-Setup-${version}.${ext}"
     },
     "nsis": {
