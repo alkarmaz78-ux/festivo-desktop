@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
       - name: Build Windows installer
         run: npm run dist
 
-      - name: Upload installer
+      - name: Publish auto-update release\n        if: startsWith(github.ref, 'refs/tags/v')\n        run: npm run release\n        env:\n          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n\n      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: FESTIVO-Windows-Installer
