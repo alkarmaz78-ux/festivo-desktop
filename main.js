@@ -1,13 +1,13 @@
 const { app, BrowserWindow, shell } = require('electron');
 
 const APP_URL = 'https://festivo.s-afamilyevent.workers.dev/';
-const ALLOWED_HOST = 'festivo.s-afamilyevent.workers.dev';
+const ALLOWED_HOSTS = new Set(['festivo.s-afamilyevent.workers.dev', 'music-loto.s-afamilyevent.workers.dev']);
 let hostWindow = null;
 const tvWindows = new Set();
 
-function isFestivoUrl(raw) {
+function isAllowedAppUrl(raw) {
   try {
-    return new URL(raw).hostname === ALLOWED_HOST;
+    return ALLOWED_HOSTS.has(new URL(raw).hostname);
   } catch {
     return false;
   }
@@ -50,7 +50,7 @@ function configureWindowOpen(win, title) {
       };
     }
 
-    if (isFestivoUrl(url)) {
+    if (isAllowedAppUrl(url)) {
       createAppWindow(url, title);
     } else {
       shell.openExternal(url);
@@ -60,7 +60,7 @@ function configureWindowOpen(win, title) {
 }
 
 function createAppWindow(url, title = 'FESTIVO — экран для гостей') {
-  if (!isFestivoUrl(url)) {
+  if (!isAllowedAppUrl(url)) {
     shell.openExternal(url);
     return null;
   }
@@ -86,7 +86,7 @@ function createAppWindow(url, title = 'FESTIVO — экран для госте�
   win.on('closed', () => tvWindows.delete(win));
   configureWindowOpen(win, title);
   win.webContents.on('will-navigate', (event, target) => {
-    if (!isFestivoUrl(target) && !isTelegramAuthUrl(target)) {
+    if (!isAllowedAppUrl(target) && !isTelegramAuthUrl(target)) {
       event.preventDefault();
       shell.openExternal(target);
     }
@@ -113,7 +113,7 @@ function createHostWindow() {
 
   configureWindowOpen(hostWindow, 'FESTIVO — экран для гостей');
   hostWindow.webContents.on('will-navigate', (event, url) => {
-    if (!isFestivoUrl(url) && !isTelegramAuthUrl(url)) {
+    if (!isAllowedAppUrl(url) && !isTelegramAuthUrl(url)) {
       event.preventDefault();
       shell.openExternal(url);
     }
